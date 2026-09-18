@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Polyatomic Ion Flashcards</title>
+<style>
+  :root{
+    --bg:#0d1117;
+    --panel:#161b22;
+    --panel2:#1f2630;
+    --text:#f5f7fb;
+    --muted:#aeb6c5;
+    --accent:#7aa2ff;
+    --accent2:#a879ff;
+    --line:#30384a;
+  }
+
+  *{box-sizing:border-box}
+
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color:var(--text);
+    background:
+      radial-gradient(circle at 20% 20%, rgba(122,162,255,.12), transparent 28%),
+      radial-gradient(circle at 80% 80%, rgba(168,121,255,.10), transparent 30%),
+      linear-gradient(135deg,#0b0f14,#111722 55%,#0b0f14);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+
+  .app{
+    width:min(1080px,96vw);
+    height:min(760px,94vh);
+    display:grid;
+    grid-template-rows:auto auto 1fr auto;
+    gap:16px;
+  }
+
+  header{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:18px;
+  }
+
+  h1{
+    margin:0;
+    font-size:clamp(30px,5vw,54px);
+    line-height:.95;
+    letter-spacing:.02em;
+  }
+
+  .sub{
+    margin-top:8px;
+    color:var(--muted);
+    font-weight:700;
+    letter-spacing:.08em;
+    font-size:13px;
+  }
+
+  .timerBox{
+    text-align:right;
+    min-width:145px;
+  }
+
+  #timer{
+    font-variant-numeric:tabular-nums;
+    font-size:36px;
+    font-weight:900;
+  }
+
+  .timerLabel{
+    color:var(--muted);
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:.14em;
+  }
+
+  .toolbar{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:12px 14px;
+    background:rgba(22,27,34,.9);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:18px;
+    box-shadow:0 10px 35px rgba(0,0,0,.25);
+  }
+
+  .status{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color:var(--muted);
+    font-weight:700;
+  }
+
+  .pill{
+    padding:7px 10px;
+    border-radius:999px;
+    background:var(--panel2);
+    border:1px solid var(--line);
+    color:var(--text);
+    font-size:13px;
+  }
+
+  .actions{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+
+  button{
+    border:1px solid var(--line);
+    background:#202733;
+    color:var(--text);
+    padding:10px 14px;
+    border-radius:12px;
+    font-weight:800;
+    cursor:pointer;
+    transition:.18s ease;
+  }
+
+  button:hover{
+    transform:translateY(-1px);
+    border-color:#4e5870;
+  }
+
+  .stage{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:0;
+  }
+
+  .card{
+    width:min(900px,94vw);
+    height:min(470px,58vh);
+    border-radius:30px;
+    border:1px solid rgba(255,255,255,.10);
+    box-shadow:0 28px 80px rgba(0,0,0,.45);
+    background:
+      linear-gradient(145deg,rgba(255,255,255,.03),rgba(255,255,255,0)),
+      linear-gradient(145deg,#171d27,#111720 68%,#141922);
+    display:grid;
+    place-items:center;
+    padding:36px;
+    cursor:pointer;
+    position:relative;
+    overflow:hidden;
+    transition:transform .15s ease, filter .15s ease;
+  }
+
+  .card:active{
+    transform:scale(.995);
+  }
+
+  .card::after{
+    content:"";
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:0;
+    height:6px;
+    background:linear-gradient(90deg,var(--accent),var(--accent2));
+  }
+
+  .inner{
+    text-align:center;
+    width:100%;
+  }
+
+  .eyebrow{
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:.16em;
+    font-size:13px;
+    font-weight:900;
+    margin-bottom:24px;
+  }
+
+  .prompt{
+    font-size:clamp(46px,9vw,108px);
+    line-height:1;
+    font-weight:950;
+    letter-spacing:-.035em;
+    text-shadow:0 8px 35px rgba(0,0,0,.3);
+    word-break:break-word;
+  }
+
+  .prompt.formula{
+    font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;
+    letter-spacing:-.02em;
+  }
+
+
+  .prompt.formula .ion-stack{
+    display:inline-grid;
+    grid-template-rows:1fr 1fr;
+    align-items:center;
+    justify-items:center;
+    width:.72em;
+    margin-left:.015em;
+    vertical-align:middle;
+    line-height:.72;
+    transform:translateY(-.03em);
+  }
+
+  .prompt.formula .ion-stack sup,
+  .prompt.formula .ion-stack sub{
+    position:static;
+    font-size:.52em;
+    line-height:.72;
+    vertical-align:baseline;
+    margin:0;
+    padding:0;
+  }
+
+  .prompt.formula > sup{
+    font-size:.52em;
+    vertical-align:.72em;
+    line-height:0;
+    margin-left:.03em;
+  }
+
+  .hint{
+    margin-top:28px;
+    color:var(--muted);
+    font-size:15px;
+    font-weight:700;
+  }
+
+  .answerState{
+    box-shadow:
+      0 28px 80px rgba(0,0,0,.45),
+      inset 0 0 0 2px rgba(122,162,255,.18);
+  }
+
+  .flash{
+    animation:flash .28s ease;
+  }
+
+  @keyframes flash{
+    0%{filter:brightness(1)}
+    50%{filter:brightness(1.2)}
+    100%{filter:brightness(1)}
+  }
+
+  .timeup{
+    animation:pulse 1s ease-in-out infinite;
+  }
+
+  @keyframes pulse{
+    50%{transform:scale(1.04)}
+  }
+
+  footer{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    color:var(--muted);
+    font-size:13px;
+    font-weight:700;
+  }
+
+  .keys{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+
+  kbd{
+    padding:4px 8px;
+    border-radius:7px;
+    border:1px solid #424b60;
+    background:#1c2230;
+    color:#fff;
+    box-shadow:inset 0 -2px 0 rgba(0,0,0,.35);
+    font-size:12px;
+  }
+
+  .progressWrap{
+    height:8px;
+    background:#171c25;
+    border-radius:999px;
+    overflow:hidden;
+    border:1px solid #252c3a;
+    min-width:180px;
+    flex:1;
+    max-width:340px;
+  }
+
+  #progress{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg,var(--accent),var(--accent2));
+    transition:width .25s ease;
+  }
+
+  @media(max-width:700px){
+    .app{height:auto; min-height:90vh}
+    header{align-items:center}
+    .timerBox{min-width:auto}
+    #timer{font-size:28px}
+    .card{height:430px}
+    footer{flex-direction:column; align-items:flex-start}
+    .progressWrap{width:100%; max-width:none}
+  }
+  .firework-particle{
+    position:fixed;
+    width:var(--len,72px);
+    height:4px;
+    border-radius:999px;
+    pointer-events:none;
+    z-index:99999;
+    transform:translate(-50%,-50%) rotate(var(--rot,0rad));
+    transform-origin:left center;
+    animation:fwBurst 1300ms cubic-bezier(.14,.72,.22,1) forwards;
+    filter:
+      drop-shadow(0 0 6px var(--glow, #fff))
+      drop-shadow(0 0 14px var(--glow, #fff))
+      drop-shadow(0 0 24px var(--glow, #fff));
+  }
+
+  .firework-particle::after{
+    content:"";
+    position:absolute;
+    right:-2px;
+    top:50%;
+    width:10px;
+    height:10px;
+    border-radius:50%;
+    transform:translateY(-50%);
+    background:var(--glow, #fff);
+    box-shadow:
+      0 0 8px var(--glow, #fff),
+      0 0 18px var(--glow, #fff),
+      0 0 28px var(--glow, #fff);
+  }
+
+  @keyframes fwBurst{
+    from{
+      opacity:1;
+      transform:translate(-50%,-50%) rotate(var(--rot,0rad)) translateX(0) scale(1);
+    }
+    70%{
+      opacity:1;
+    }
+    to{
+      opacity:0;
+      transform:translate(-50%,-50%) rotate(var(--rot,0rad)) translateX(var(--dist,180px)) scale(.7);
+    }
+  }
+to{
+      opacity:0;
+      transform:translate(-50%,-50%) translate(var(--dx),var(--dy)) scale(.2);
+    }
+  }
+
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div>
+      <h1>Polyatomic Ion Flashcards</h1>
+      <div class="sub">Quick retrieval practice</div>
+    </div>
+    <div class="timerBox">
+      <div class="timerLabel">Practice Timer</div>
+      <div id="timer">2:00</div>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <div class="status">
+      <span id="counter" class="pill">Card 1 of 9</span>
+      <span id="mode" class="pill">NAME → FORMULA</span>
+    </div>
+    <div class="actions">
+      <button id="prevBtn">← Previous</button>
+      <button id="shuffleBtn">Shuffle</button>
+      <button id="timerBtn">▶ Start 2:00</button>
+      <button id="nextBtn">Next →</button>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div id="card" class="card" aria-label="Flashcard. Press spacebar to reveal the answer.">
+      <div class="inner">
+        <div id="eyebrow" class="eyebrow">Give the formula and charge</div>
+        <div id="cardText" class="prompt">nitrate</div>
+        <div id="hint" class="hint"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="keys">
+      <span><kbd>Space</kbd> reveal</span>
+      <span><kbd>←</kbd> previous</span>
+      <span><kbd>→</kbd> next</span>
+      <span><kbd>R</kbd> reshuffle</span>
+      <span><kbd>T</kbd> timer</span>
+      <span><kbd>F</kbd> fireworks</span>
+    </div>
+    <div class="progressWrap" aria-label="Deck progress"><div id="progress"></div></div>
+    <div id="footerMsg">Ready</div>
+  </footer>
+</div>
+
+<script>
+const baseDeck = [
+  {name:"phosphate", formula:"PO<span class='ion-stack'><sup>3−</sup><sub>4</sub></span>", direction:"name"},
+  {name:"sulfate",   formula:"SO<span class='ion-stack'><sup>2−</sup><sub>4</sub></span>", direction:"formula"},
+  {name:"sulfite",   formula:"SO<span class='ion-stack'><sup>2−</sup><sub>3</sub></span>", direction:"name"},
+  {name:"nitrate",   formula:"NO<span class='ion-stack'><sup>−</sup><sub>3</sub></span>",  direction:"formula"},
+  {name:"nitrite",   formula:"NO<span class='ion-stack'><sup>−</sup><sub>2</sub></span>",  direction:"name"},
+  {name:"hydroxide", formula:"OH<sup>−</sup>",   direction:"formula"},
+  {name:"carbonate", formula:"CO<span class='ion-stack'><sup>2−</sup><sub>3</sub></span>", direction:"name"},
+  {name:"ammonium",  formula:"NH<span class='ion-stack'><sup>+</sup><sub>4</sub></span>",  direction:"formula"},
+  {name:"cyanide",   formula:"CN<sup>−</sup>",   direction:"name"}
+];
+
+let deck = [...baseDeck];
+let index = 0;
+let showingAnswer = false;
+let seconds = 120;
+let timerHandle = null;
+
+const card = document.getElementById("card");
+const cardText = document.getElementById("cardText");
+const eyebrow = document.getElementById("eyebrow");
+const hint = document.getElementById("hint");
+const counter = document.getElementById("counter");
+const mode = document.getElementById("mode");
+const progress = document.getElementById("progress");
+const timer = document.getElementById("timer");
+const timerBtn = document.getElementById("timerBtn");
+const footerMsg = document.getElementById("footerMsg");
+
+function getPrompt(c){
+  return c.direction === "name" ? c.name : c.formula;
+}
+
+function getAnswer(c){
+  return c.direction === "name" ? c.formula : c.name;
+}
+
+function renderCard(){
+  const c = deck[index];
+  showingAnswer = false;
+  card.classList.remove("answerState");
+
+  cardText.innerHTML = getPrompt(c);
+  cardText.className = "prompt" + (c.direction === "formula" ? " formula" : "");
+
+  if(c.direction === "name"){
+    eyebrow.textContent = "Give the formula and charge";
+    mode.textContent = "NAME → FORMULA";
+  } else {
+    eyebrow.textContent = "Name this polyatomic ion";
+    mode.textContent = "FORMULA → NAME";
+  }
+
+  hint.innerHTML = '';
+  counter.textContent = `Card ${index+1} of ${deck.length}`;
+  progress.style.width = `${((index+1)/deck.length)*100}%`;
+}
+
+function flipCard(){
+  const c = deck[index];
+  showingAnswer = !showingAnswer;
+
+  if(showingAnswer){
+    cardText.innerHTML = getAnswer(c);
+    cardText.className = "prompt" + (c.direction === "name" ? " formula" : "");
+    eyebrow.textContent = "Answer";
+    hint.innerHTML = '';
+    card.classList.add("answerState");
+  } else {
+    renderCard();
+  }
+
+  card.classList.add("flash");
+  setTimeout(()=>card.classList.remove("flash"),280);
+}
+
+function nextCard(){
+  index = (index + 1) % deck.length;
+  renderCard();
+}
+
+function prevCard(){
+  index = (index - 1 + deck.length) % deck.length;
+  renderCard();
+}
+
+function shuffleDeck(){
+  for(let i=deck.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [deck[i],deck[j]]=[deck[j],deck[i]];
+  }
+
+  deck = deck.map(c => ({
+    ...c,
+    direction: Math.random() < 0.5 ? "name" : "formula"
+  }));
+
+  index = 0;
+  renderCard();
+  footerMsg.textContent = "Shuffled";
+}
+
+function updateTimer(){
+  const m=Math.floor(seconds/60);
+  const s=seconds%60;
+  timer.textContent=`${m}:${String(s).padStart(2,"0")}`;
+}
+
+function toggleTimer(){
+  if(timerHandle){
+    clearInterval(timerHandle);
+    timerHandle=null;
+    timerBtn.textContent="▶ Resume";
+    footerMsg.textContent="Timer paused";
+    return;
+  }
+
+  if(seconds<=0){
+    seconds=120;
+    updateTimer();
+  }
+
+  timerBtn.textContent="⏸ Pause";
+  footerMsg.textContent="Practice round running";
+
+  timerHandle=setInterval(()=>{
+    seconds--;
+    updateTimer();
+
+    if(seconds<=0){
+      clearInterval(timerHandle);
+      timerHandle=null;
+      timerBtn.textContent="↻ Reset 2:00";
+      footerMsg.textContent="Time";
+      timer.classList.add("timeup");
+      setTimeout(()=>timer.classList.remove("timeup"),4000);
+    }
+  },1000);
+}
+
+function resetTimer(){
+  if(timerHandle){
+    clearInterval(timerHandle);
+    timerHandle=null;
+  }
+  seconds=120;
+  updateTimer();
+  timerBtn.textContent="▶ Start 2:00";
+  footerMsg.textContent="Ready";
+}
+
+card.addEventListener("click", flipCard);
+document.getElementById("nextBtn").addEventListener("click", nextCard);
+document.getElementById("prevBtn").addEventListener("click", prevCard);
+document.getElementById("shuffleBtn").addEventListener("click", shuffleDeck);
+
+timerBtn.addEventListener("click", ()=>{
+  if(seconds===0) resetTimer();
+  else toggleTimer();
+});
+
+document.addEventListener("keydown", (e)=>{
+  if(e.code==="Space"){
+    e.preventDefault();
+    flipCard();
+  } else if(e.code==="ArrowRight"){
+    e.preventDefault();
+    nextCard();
+  } else if(e.code==="ArrowLeft"){
+    e.preventDefault();
+    prevCard();
+  } else if(e.key.toLowerCase()==="r"){
+    shuffleDeck();
+  } else if(e.key.toLowerCase()==="t"){
+    if(seconds===0) resetTimer();
+    else toggleTimer();
+  } else if(e.key.toLowerCase()==="f"){
+    launchFireworks();
+  }
+});
+
+
+
+
+
+
+
+function launchFireworks(){
+  const colors = ["#ff4d6d","#ffb703","#ffd166","#06d6a0","#4cc9f0","#4361ee","#9b5de5","#f72585","#ffffff"];
+  const bursts = [
+    [window.innerWidth*0.24, window.innerHeight*0.38, 44],
+    [window.innerWidth*0.50, window.innerHeight*0.24, 56],
+    [window.innerWidth*0.76, window.innerHeight*0.40, 44],
+    [window.innerWidth*0.38, window.innerHeight*0.18, 34],
+    [window.innerWidth*0.62, window.innerHeight*0.16, 34]
+  ];
+
+  bursts.forEach(([x,y,count], burstIndex)=>{
+    setTimeout(()=>{
+      for(let i=0;i<count;i++){
+        const p = document.createElement("div");
+        p.className = "firework-particle";
+        p.style.left = x + "px";
+        p.style.top = y + "px";
+
+        const color = colors[Math.floor(Math.random()*colors.length)];
+        const angle = (Math.PI*2*i/count) + (Math.random()-.5)*0.22;
+        const dist = 150 + Math.random()*220;
+        const len = 55 + Math.random()*65;
+
+        p.style.background = `linear-gradient(90deg, rgba(255,255,255,0), ${color} 40%, rgba(255,255,255,.98) 100%)`;
+        p.style.setProperty("--glow", color);
+        p.style.setProperty("--rot", angle + "rad");
+        p.style.setProperty("--dist", dist + "px");
+        p.style.setProperty("--len", len + "px");
+
+        document.body.appendChild(p);
+        setTimeout(()=>p.remove(), 1400);
+      }
+    }, burstIndex*110);
+  });
+
+  footerMsg.textContent = "Correct! 🎆";
+}
+
+renderCard();
+</script>
+</body>
+</html>
