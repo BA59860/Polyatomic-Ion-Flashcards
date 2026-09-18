@@ -34,7 +34,7 @@
   }
 
   .app{
-    width:min(1080px,96vw);
+    width:min(1080px,100%);
     height:min(760px,94vh);
     display:grid;
     grid-template-rows:auto auto 1fr auto;
@@ -96,10 +96,37 @@
 
   .status{
     display:flex;
+    flex-wrap:wrap;
     align-items:center;
     gap:10px;
     color:var(--muted);
     font-weight:700;
+  }
+
+  .studySet{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:13px;
+  }
+
+  #studySet{
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:9px 10px;
+    background:var(--panel2);
+    color:var(--text);
+    font:inherit;
+    font-weight:800;
+    color-scheme:dark;
+    cursor:pointer;
+  }
+
+  #studySet:focus-visible,
+  button:focus-visible,
+  .card:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:3px;
   }
 
   .pill{
@@ -141,7 +168,7 @@
   }
 
   .card{
-    width:min(900px,94vw);
+    width:min(900px,100%);
     height:min(470px,58vh);
     border-radius:30px;
     border:1px solid rgba(255,255,255,.10);
@@ -198,6 +225,14 @@
   .prompt.formula{
     font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;
     letter-spacing:-.02em;
+    white-space:nowrap;
+    word-break:normal;
+  }
+
+  .prompt.formula > sub{
+    font-size:.52em;
+    vertical-align:-.28em;
+    line-height:0;
   }
 
 
@@ -310,9 +345,10 @@
     header{align-items:center}
     .timerBox{min-width:auto}
     #timer{font-size:28px}
-    .card{height:430px}
+    .card{height:430px; padding:24px}
+    .prompt:not(.formula){font-size:clamp(32px,8vw,56px); overflow-wrap:normal; word-break:normal}
     footer{flex-direction:column; align-items:flex-start}
-    .progressWrap{width:100%; max-width:none}
+    .progressWrap{width:100%; max-width:none; flex:none}
   }
   .firework-particle{
     position:fixed;
@@ -359,12 +395,6 @@
       transform:translate(-50%,-50%) rotate(var(--rot,0rad)) translateX(var(--dist,180px)) scale(.7);
     }
   }
-to{
-      opacity:0;
-      transform:translate(-50%,-50%) translate(var(--dx),var(--dy)) scale(.2);
-    }
-  }
-
 </style>
 </head>
 <body>
@@ -382,7 +412,13 @@ to{
 
   <div class="toolbar">
     <div class="status">
-      <span id="counter" class="pill">Card 1 of 9</span>
+      <label class="studySet" for="studySet">Study Set
+        <select id="studySet">
+          <option value="core">Core 9</option>
+          <option value="full" selected>Full 22</option>
+        </select>
+      </label>
+      <span id="counter" class="pill">Card 1 of 22</span>
       <span id="mode" class="pill">NAME → FORMULA</span>
     </div>
     <div class="actions">
@@ -394,7 +430,7 @@ to{
   </div>
 
   <div class="stage">
-    <div id="card" class="card" aria-label="Flashcard. Press spacebar to reveal the answer.">
+    <div id="card" class="card" tabindex="0" role="button" aria-label="Flashcard. Press spacebar or Enter to reveal the answer.">
       <div class="inner">
         <div id="eyebrow" class="eyebrow">Give the formula and charge</div>
         <div id="cardText" class="prompt">nitrate</div>
@@ -430,7 +466,30 @@ const baseDeck = [
   {name:"cyanide",   formula:"CN<sup>−</sup>",   direction:"name"}
 ];
 
-let deck = [...baseDeck];
+// Additional ions from the common polyatomic ions reference table.
+// Keep the original nine entries above as the Core 9 study set.
+const additionalIons = [
+  {name:"hydrogen sulfate", formula:"HSO<span class='ion-stack'><sup>−</sup><sub>4</sub></span>"},
+  {name:"hydrogen phosphate", formula:"HPO<span class='ion-stack'><sup>2−</sup><sub>4</sub></span>"},
+  {name:"dihydrogen phosphate", formula:"H<sub>2</sub>PO<span class='ion-stack'><sup>−</sup><sub>4</sub></span>"},
+  {name:"hydrogen carbonate", formula:"HCO<span class='ion-stack'><sup>−</sup><sub>3</sub></span>"},
+  {name:"hypochlorite", formula:"ClO<sup>−</sup>"},
+  {name:"chlorite", formula:"ClO<span class='ion-stack'><sup>−</sup><sub>2</sub></span>"},
+  {name:"chlorate", formula:"ClO<span class='ion-stack'><sup>−</sup><sub>3</sub></span>"},
+  {name:"perchlorate", formula:"ClO<span class='ion-stack'><sup>−</sup><sub>4</sub></span>"},
+  {name:"acetate", formula:"C<sub>2</sub>H<sub>3</sub>O<span class='ion-stack'><sup>−</sup><sub>2</sub></span>"},
+  {name:"permanganate", formula:"MnO<span class='ion-stack'><sup>−</sup><sub>4</sub></span>"},
+  {name:"dichromate", formula:"Cr<sub>2</sub>O<span class='ion-stack'><sup>2−</sup><sub>7</sub></span>"},
+  {name:"chromate", formula:"CrO<span class='ion-stack'><sup>2−</sup><sub>4</sub></span>"},
+  {name:"peroxide", formula:"O<span class='ion-stack'><sup>2−</sup><sub>2</sub></span>"}
+];
+
+const studySets = {
+  core: baseDeck,
+  full: [...baseDeck, ...additionalIons]
+};
+
+let deck = [];
 let index = 0;
 let showingAnswer = false;
 let seconds = 120;
@@ -446,6 +505,14 @@ const progress = document.getElementById("progress");
 const timer = document.getElementById("timer");
 const timerBtn = document.getElementById("timerBtn");
 const footerMsg = document.getElementById("footerMsg");
+const studySet = document.getElementById("studySet");
+
+function changeStudySet(){
+  deck = studySets[studySet.value].map(c => ({...c}));
+  resetTimer();
+  shuffleDeck();
+  footerMsg.textContent = `${studySet.selectedOptions[0].textContent} ready`;
+}
 
 function getPrompt(c){
   return c.direction === "name" ? c.name : c.formula;
@@ -564,6 +631,7 @@ function resetTimer(){
     timerHandle=null;
   }
   seconds=120;
+  timer.classList.remove("timeup");
   updateTimer();
   timerBtn.textContent="▶ Start 2:00";
   footerMsg.textContent="Ready";
@@ -573,6 +641,7 @@ card.addEventListener("click", flipCard);
 document.getElementById("nextBtn").addEventListener("click", nextCard);
 document.getElementById("prevBtn").addEventListener("click", prevCard);
 document.getElementById("shuffleBtn").addEventListener("click", shuffleDeck);
+studySet.addEventListener("change", changeStudySet);
 
 timerBtn.addEventListener("click", ()=>{
   if(seconds===0) resetTimer();
@@ -580,7 +649,13 @@ timerBtn.addEventListener("click", ()=>{
 });
 
 document.addEventListener("keydown", (e)=>{
-  if(e.code==="Space"){
+  // Let the selector and other native controls keep their keyboard behavior.
+  if(e.target.closest("select, input, textarea, [contenteditable='true']") || e.altKey || e.ctrlKey || e.metaKey) return;
+  if(e.target.closest("button") && (e.code==="Space" || e.code==="Enter")) return;
+  if(e.code==="Enter" && e.target===card){
+    e.preventDefault();
+    flipCard();
+  } else if(e.code==="Space"){
     e.preventDefault();
     flipCard();
   } else if(e.code==="ArrowRight"){
@@ -643,7 +718,7 @@ function launchFireworks(){
   footerMsg.textContent = "Correct! 🎆";
 }
 
-renderCard();
+changeStudySet();
 </script>
 </body>
 </html>
